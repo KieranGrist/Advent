@@ -50,98 +50,35 @@ int main()
 	std::string mystring;
 	int count = 0;
 	int previous_sum_amount = 0;
-	int random_thing = 0;
-	std::map<int, Sum> sums;
-	std::map<int, int> table_thing;
-
 	if (myfile.is_open()) {
 		while (myfile.good())
 		{
 			myfile >> mystring;
 			int num = std::stoi(mystring);
+			int current_sum = num;
 
-		
-			if (random_thing == 3)
+			if (previous_sum_amount == 0)
 			{
-				random_thing = 0;
+				std::cout << num << " (N/A - no previous measurement)" << "\n";
 			}
-			random_thing++;
-
-			switch (random_thing)
+			if (current_sum > previous_sum_amount)
 			{
-			case  1:
-
-				break;
-			case 2: 
-				break;
-			case 3:
-				break;
+				std::cout << current_sum << " (increased)" << "\n";
+				count++;
 			}
-
-
-			auto table_itr = table_thing.find(row);
-			if (table_itr != table_thing.end())
+			if (current_sum == previous_sum_amount)
 			{
-				table_itr->second++;
+				std::cout << current_sum << " (no change)" << "\n";
+
 			}
-			else
+			if (current_sum < previous_sum_amount)
 			{
-				table_thing.insert(std::pair<int, int>(row, 0));
-				table_itr = table_thing.find(row);
+				std::cout << current_sum << " (decreased)" << "\n";
 			}
+			previous_sum_amount = current_sum;
 
-			auto itr = sums.find(table_itr->second);
-			if (itr != sums.end())
-			{
-				itr->second.PlaceNumber(num);
-			}
-			else
-			{
-				Sum sum;
-				sum.PlaceNumber(num);
-				sums.insert(std::pair<int, Sum>(table_itr->second, sum));
-			}
-
-
-			/*
-			current_sum += num;
-			numbers_met++;
-
-			if (numbers_met == 2)
-			{
-				if (previous_sum_amount == 0)
-				{
-					std::cout << num << " (N/A - no previous measurement)" << "\n";
-				}
-				if (current_sum > previous_sum_amount)
-				{
-					std::cout << current_sum << " (increased)" << "\n";
-					count++;
-				}
-				if (current_sum == previous_sum_amount)
-				{
-					std::cout << current_sum << " (no change)" << "\n";
-
-				}
-				if (current_sum < previous_sum_amount)
-				{
-					std::cout << current_sum << " (decreased)" << "\n";
-				}
-				previous_sum_amount = current_sum;
-				numbers_met = 0;
-				current_sum = 0;
-			}
-			*/
 		}
 	}
-
-
-	std::cout << "\tKEY\tELEMENT\n";
-	for (auto itr = sums.begin(); itr != sums.end(); ++itr)
-	{
-		std::cout << '\t' << itr->first << '\t' << itr->second.ToString() << '\n';
-	}
-
 
 	std::cout << "count " << count;
 }
