@@ -50,14 +50,12 @@ int main()
 			if (input == "up")
 			{
 				int X = std::stoi(mystring);
-				//depth -= X;
 				aim -= X;
 				std::cout << "up " << X << " depth " << depth << " aim " << aim << "\n";			
 			}
 			if (input == "down")
 			{
 				int X = std::stoi(mystring);
-				//depth += X;
 				aim += X;
 				std::cout << "down " << X << " depth " << depth << " aim " << aim	 << "\n";
 			}
