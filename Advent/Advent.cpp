@@ -17,52 +17,87 @@ int main()
 	myfile.open("list.txt");
 	std::string mystring;
 	int count = 0;
-	int horizontal_position = 0;
-	int depth = 0;
-	int aim = 0;
-	std::string input;
+	
+	std::map<int, std::vector<int>> mapped_column_numbers;
 
 	if (myfile.is_open()) {
 		while (myfile.good())
 		{
 			myfile >> mystring;
-			//	std::cout << mystring << "\n";
+			std::cout << "mystring  " << mystring <<"\n";
 
-			if (mystring == "forward" || mystring == "up" || mystring == "down")
+			for (std::string::size_type i = 0; i < mystring.size(); i++)
 			{
-				input = mystring;
-				continue;
-			}
-
-			if (input == "forward")
-			{
-				int X = std::stoi(mystring);
-				horizontal_position += X;
-				
-				std::cout << "forward " << X << " horizontal position " << horizontal_position << "\n";
-				
-				if (aim != 0)
+				int bin = -1;
+				if (mystring[i] == '0')
 				{
-					depth += aim * X;
-					std::cout  << "aim " << aim << " num " << X << " Depth " << depth << "\n";
+					bin = 0;
 				}
-			}
-			if (input == "up")
-			{
-				int X = std::stoi(mystring);
-				aim -= X;
-				std::cout << "up " << X << " depth " << depth << " aim " << aim << "\n";			
-			}
-			if (input == "down")
-			{
-				int X = std::stoi(mystring);
-				aim += X;
-				std::cout << "down " << X << " depth " << depth << " aim " << aim	 << "\n";
+				else
+				{
+					bin = 1;
+				}
+			
+				std::cout << "column i " << i << " had binary " <<bin << "\n";
+				auto column_pair = mapped_column_numbers.find(i);
+				if (column_pair != mapped_column_numbers.end())
+				{
+					column_pair->second.push_back(bin);
+				}
+				else
+				{
+					std::vector<int> array;
+					array.push_back(bin);
+					mapped_column_numbers.emplace(i, array);
+				}
 			}
 		}
 	}
-	std::cout << "final depth " << depth << "\n";
-	std::cout << "final horizontal position " << horizontal_position << "\n";
-	count = horizontal_position * depth;
+	std::string gamma = "";
+	std::string epsilon = "";
+
+	for (auto it = mapped_column_numbers.begin(); it != mapped_column_numbers.end(); it++)
+	{
+		int zero = 0;
+		int one = 0;
+		std::vector<int> num_array = it->second;
+		for (int num : num_array)
+		{
+			switch (num)
+			{
+			case 0:
+				zero++;
+				break;
+			case 1:
+				one++;
+				break;			
+			}
+		}
+
+		std::cout << "column  " << it->first << " zeros: " << zero << " ones: " << one << "\n";
+
+		if (zero > one)
+		{
+			gamma.append("0");
+			epsilon.append("1");
+		}
+		else
+		{
+			gamma.append("1");
+			epsilon.append("0");
+		}
+		std::cout << "gamma " << gamma << "\n";
+		std::cout << "epsilon " << epsilon << "\n";
+
+
+	}
+	int gamma_rate = std::stoi(gamma, nullptr, 2);
+	int epsilon_rate = std::stoi(epsilon, nullptr, 2);
+
+	std::cout << "gamma_rate " << gamma_rate << "\n";
+	std::cout << "epsilon_rate " << epsilon_rate << "\n";
+
+	count = gamma_rate * epsilon_rate;
+
 	std::cout << "count " << count;
 }
