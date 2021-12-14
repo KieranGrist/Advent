@@ -1,342 +1,231 @@
 
-#include <iostream>
+#include <algorithm>
+#include <cstdint>
 #include <fstream>
+#include <iomanip>
+#include <iosfwd>
+#include <iostream>
+#include <iterator>
+#include <map>
+#include <sstream>
 #include <string>
 #include <vector>
-#include <map>
-#include <cstdint>
-#include <algorithm>
-#include <iomanip>
-struct BinaryNumber
+
+struct BingoBoard
 {
 public:
-	BinaryNumber()
+	BingoBoard()
 	{
-		BinaryString.clear();
-		Bits.clear();
-	};
+		Board.clear();
+	}
 
-	BinaryNumber(const BinaryNumber& InBinaryNumber)
+	void AddNumber(int InNumber)
 	{
-		Bits = InBinaryNumber.Bits;
-		BinaryString = InBinaryNumber.BinaryString;
-	};
-	
-	void SetString(std::string InString)
-	{
-		BinaryString = InString;
-		for (std::string::size_type i = 0; i < BinaryString.size(); i++)
+		for (int i = 0; i < 5; i++)
 		{
-			int bin = -1;
-			if (BinaryString[i] == '0')
-			{
-				bin = 0;
-			}
-			else
-			{
-				bin = 1;
-			}
-			AddBit(bin);
-		}
-	}
-	
-	int GetRow(int InRow)
-	{
-		return Bits[InRow];
-	}
-
-	void AddBit(int InBit)
-	{
-		Bits.push_back(InBit);
-	}
-
-	void RemoveRow(int InRow)
-	{
-		Bits.erase(Bits.begin() + InRow);
-	}
-	
-	void Print()
-	{
-		for (auto itr : Bits)
-		{
-			std::cout << itr;
-		}
-	}
-
-
-	const std::string& GetString()
-	{
-		return BinaryString;
-	}
-
-private:
-	std::string BinaryString;
-	std::vector<int> Bits;
-};
-
-struct BinaryVector
-{
-public:
-	BinaryVector()
-	{
-		BinaryNumbers.clear();
-	}
-	
-	BinaryVector(const BinaryVector& InBinaryNumber)
-	{
-		BinaryNumbers = InBinaryNumber.BinaryNumbers;
-	};
-	
-	std::map<std::string, BinaryNumber>::iterator FindBinaryStorage(std::string InString)
-	{
-		return BinaryNumbers.find(InString);
-	}
-	
-	BinaryNumber GetFirstBinaryNumber()
-	{
-		auto number = BinaryNumbers.begin();
-		return number->second;
-	}
-	
-	void AddBinaryNumber(BinaryNumber InBinary)
-	{
-		if (FindBinaryStorage(InBinary.GetString()) != BinaryNumbers.end())
+			auto size = Board[i].size();
+			if(size == 5)
+				continue;
+			Board[i].push_back(InNumber);
 			return;
-		
-		BinaryNumbers.emplace(InBinary.GetString(), InBinary);
-	}
-	
-	size_t Count()
-	{
-		return BinaryNumbers.size();
-	}
-
-	size_t RemoveBinaryNumber(std::string InString)
-	{
-		return BinaryNumbers.erase(InString);
-	}
-	
-	std::map<std::string, BinaryNumber> BinaryNumbers;
-};
-
-
-struct OxgenVector : public BinaryVector
-{
-public: 
-	OxgenVector(const BinaryVector& InBinaryNumber)
-	{
-		BinaryNumbers = InBinaryNumber.BinaryNumbers;
-	};
-
-	void Print(int Position)
-	{
-		std::cout << "Oxygen Vector Numbers Readout Position " << Position  << "\n";
-		for (auto itr = BinaryNumbers.begin(); itr != BinaryNumbers.end(); ++itr)
-		{
-			itr->second.Print();
-			std::cout << "\n";
 		}
 	}
-
-	std::string FindOxygenRating()
+	
+	void AddBingoNumber(int InNumber)
 	{
-		/*
-		 To find oxygen generator rating,
-		 determine the most common value (0 or 1) in the current bit position,
-		 and keep only numbers with that bit in that position. 
-		 if 0 and 1 are equally common, keep values with a 1 in the position being considered.
-		*/
-		size_t size = BinaryNumbers.size();
-		int pos = 0;
-		while (size != 1)
-		{
-			Print(pos);
-		
-			std::vector<std::string> zeros;
-			std::vector<std::string> ones;
-			for (auto itr = BinaryNumbers.begin(); itr != BinaryNumbers.end(); ++itr)
-			{
-				int row_num = itr->second.GetRow(0);
-				itr->second.RemoveRow(0);
-				switch (row_num)
-				{
-				case 0:
-					zeros.push_back(itr->first);
-					break;
-				case 1:
-					ones.push_back(itr->first);
-					break;
-				}
-			}
+		Numbers.push_back(InNumber);
+	}
 
-			int zero_count = zeros.size();
-			int one_count = ones.size();
-			std::cout << "zero_count " << zero_count << " one_count " << one_count << " Count " << Count() << "\n";
-			if (zero_count > one_count)
+	bool NumbersContains(int InNumber)
+	{
+		for (auto itr : Numbers)
+		{
+			if (itr == InNumber)
 			{
-				for (auto itr : ones)
+				return true;
+			}
+		}
+		return false;
+	}
+
+	bool HasWon(std::vector<int>& WinningNumbers)
+	{
+		// Row check 
+		std::map<int, std::vector<int>> column;
+		for (auto itr = Board.begin(); itr != Board.end(); ++itr)
+		{
+			auto row_numbers = itr->second;
+			int count =0;
+			int row = 0;
+			for (auto num : row_numbers)
+			{
+				if (NumbersContains(num))
 				{
-					RemoveBinaryNumber(itr);
-					size = Count();
-					if (size == 1)
-						break;
+					column[row].push_back(num);
+					count++;
 				}
+				row++;
+			}
+			if (count == 5)
+			{
+				WinningNumbers = row_numbers;
+				return true;
 			}
 			
-			if (one_count > zero_count)
-			{
-				for (auto itr : zeros)
-				{
-					RemoveBinaryNumber(itr);
-					size = Count();
-					if (size == 1)
-						break;
-				}
-			}
-
-			if (one_count == zero_count)
-			{
-				
-				for (auto itr : zeros)
-				{
-					RemoveBinaryNumber(itr);
-					size = Count();
-					if (size == 1)
-						break;
-				}
-			}
-			pos++;
 		}
-
-		auto OxygenRating = BinaryNumbers.begin()->first;
-		std::cout << "OxygenRating " << OxygenRating << "\n";
-		return OxygenRating;
+		for (auto itr = column.begin(); itr != column.end(); ++itr)
+		{
+			auto column_numbers = itr->second;
+			if (column_numbers.size() == 5)
+			{
+				WinningNumbers = column_numbers;
+				return true;
+			}
+		}
+		return false;
 	}
+
+	void Print()
+	{
+		std::cout << "board " << Index << "\n";
+		for (auto itr = Board.begin(); itr != Board.end(); ++itr)
+		{
+			auto row_numbers = itr->second;
+			size_t size = row_numbers.size();
+			for (int i =0; i <= size; i++)
+			{
+				if (i == size)
+				{
+					std::cout << "\n";
+					continue;
+				}
+
+				auto num = row_numbers[i];
+				if (NumbersContains(num))
+				{
+					std::cout << "pass " << num << "\t";
+	
+				}
+				else
+				{
+					std::cout << "fail " << num << "\t";
+				}
+			}
+		}
+	}
+
+
+	int Sum()
+	{
+		int sum = 0;
+		for (auto itr = Board.begin(); itr != Board.end(); ++itr)
+		{
+			for (auto num : itr->second)
+			{		
+				if (!NumbersContains(num))
+				{
+					std::cout << sum <<" + " << num << " = " << sum + num << "\n";;
+					sum += num;
+				}
+			}
+		}
+		return sum;
+	}
+
+	int NumbersCount()
+	{
+		int size = 0;
+		for (int i = 0; i < 5; i++)
+		{
+			int row_size = Board[i].size();
+		//	std::cout << "row_size " << row_size << "\n";
+			size += row_size;
+		}
+		//std::cout << "number count " << size << "\n";
+		return size;
+	}
+
+	int Index = 0;
+
+private:
+	std::map<int, std::vector<int>> Board;
+	
+	std::vector<int> Numbers;
+
 };
 
-struct CO2Vector : public BinaryVector
-{
-public:
-	CO2Vector(const BinaryVector& InBinaryNumber)
-	{
-		BinaryNumbers = InBinaryNumber.BinaryNumbers;
-	};
-
-	void Print(int Position)
-	{
-		std::cout << "CO2 Vector Numbers Readout Position " << Position << "\n";
-		for (auto itr = BinaryNumbers.begin(); itr != BinaryNumbers.end(); ++itr)
-		{
-			itr->second.Print();
-			std::cout << "\n";
-		}
-	}
-
-	std::string FindC02ScruberRating()
-	{
-		/*
-		* To find CO2 scrubber rating, 
-		determine the least common value (0 or 1) in the current bit position,
-		and keep only numbers with that bit in that position.
-		If 0 and 1 are equally common, keep values with a 0 in the position being considered.
-		*/
-
-		size_t size = BinaryNumbers.size();
-		int pos = 0;
-		while (size != 1)
-		{
-			Print(pos);
-			pos++;
-			std::vector<std::string> zeros;
-			std::vector<std::string> ones;
-			for (auto itr = BinaryNumbers.begin(); itr != BinaryNumbers.end(); ++itr)
-			{
-				int row_num = itr->second.GetRow(0);
-				itr->second.RemoveRow(0);
-				switch (row_num)
-				{
-				case 0:
-					zeros.push_back(itr->first);
-					break;
-				case 1:
-					ones.push_back(itr->first);
-					break;
-				}
-			}
-
-			int zero_count = zeros.size();
-			int one_count = ones.size();
-			std::cout << "zero_count " << zero_count << " one_count " << one_count << " Count " << Count() << "\n";
-
-			if (zero_count < one_count)
-			{
-				for (auto itr : ones)
-				{
-					RemoveBinaryNumber(itr);
-					size = Count();
-					if (size == 1)
-						break;
-				}
-			}
-
-			if (one_count < zero_count)
-			{
-				for (auto itr : zeros)
-				{
-					RemoveBinaryNumber(itr);
-					size = Count();
-					if (size == 1)
-						break;
-				}
-			}
-
-			if (one_count == zero_count)
-			{
-				for (auto itr : ones)
-				{
-					RemoveBinaryNumber(itr);
-					size = Count();
-					if (size == 1)
-						break;
-				}
-			}
-			size = Count();
-		}
-		auto C02ScruberRating = BinaryNumbers.begin()->first;
-		std::cout << "C02ScruberRating " << C02ScruberRating << "\n";
-		return C02ScruberRating;
-	}
-};
 int main()
 {
 	std::ifstream myfile;
-	std::string binary_string;
+	std::string bingo_string;
 	myfile.open("list.txt");
-	int count = 0;
-	int size = 0;
-	BinaryVector binary_vector;
+	std::vector<int> bingo_numbers;
+	std::vector<BingoBoard> bingo_boards;
+	int Index = 0;
 	if (myfile.is_open())
 	{
+		BingoBoard current_board;
 		while (myfile.good())
 		{
-			myfile >> binary_string;
-			//std::cout << "binary string " << binary_string << "\n";
-			size = binary_string.length();
-			BinaryNumber number;
-			number.SetString(binary_string);
-			binary_vector.AddBinaryNumber(number);
+			myfile >> bingo_string;
+			//std::cout << "bingo_string " << bingo_string << "\n";
+
+			if (bingo_numbers.size() == 0)
+			{
+				std::string bingo_number_string;
+				while (bingo_string.size() > 0)
+				{
+					auto itr = bingo_string.begin();
+					char number = *itr;
+					bingo_number_string.push_back(number);
+					char comma = ',';
+					if (*itr == comma)
+					{
+						int num = std::stoi(bingo_number_string);
+						//std::cout << "bingo number " << num << "\n";
+						bingo_numbers.push_back(num);
+						bingo_number_string.clear();
+					}
+					bingo_string.erase(itr);
+				}
+			}
+			else
+			{
+				current_board.AddNumber(std::stoi(bingo_string));
+				if (current_board.NumbersCount() == 25)
+				{
+					bingo_boards.push_back(current_board);
+					current_board = BingoBoard();
+					current_board.Index = Index;
+					Index++;
+				}
+			}
 		}
 	}
-	// Find the Oxygen rating 
-	int numbers_left = 0;
-	OxgenVector oxygen_vector = binary_vector;
-	CO2Vector co2_vector = binary_vector;
 
-	auto oxygen_generator_number = oxygen_vector.FindOxygenRating();
-	auto co2_binary_number = co2_vector.FindC02ScruberRating();
-	int oxygen_generator_rating = std::stoi(oxygen_generator_number, nullptr, 2);
-	int CO2_scrubber_rating = std::stoi(co2_binary_number, nullptr, 2);
-	std::cout << "oxygen_generator_rating " << oxygen_generator_rating << " CO2_scrubber_rating " << CO2_scrubber_rating << "\n";
-	count = oxygen_generator_rating * CO2_scrubber_rating;
-	std::cout << "count " << count;
+	
+	BingoBoard winning_board;
+	int wining_number = -1;
+	for (auto num : bingo_numbers)
+	{
+		std::cout << "number " << num << "\n";
+		for (BingoBoard& board : bingo_boards)
+		{
+			board.AddBingoNumber(num);
+			board.Print();
+			std::cout << "\n";
+			std::vector<int> WinningNumbers;
+			if (board.HasWon(WinningNumbers))
+			{
+				wining_number = num;
+				winning_board = board;
+				break;
+			}
+		}
+		if (wining_number!= -1)
+			break;
+	}
+	std::cout << "Wining Number " << wining_number <<"\n"  ;
+	int score = winning_board.Sum() * wining_number;
+	std::cout << "score " << score << "\n";;
 }
