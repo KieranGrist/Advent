@@ -205,10 +205,13 @@ int main()
 
 	
 	BingoBoard winning_board;
+
 	int wining_number = -1;
 	for (auto num : bingo_numbers)
 	{
 		std::cout << "number " << num << "\n";
+
+		std::vector<BingoBoard> non_winning_boards;
 		for (BingoBoard& board : bingo_boards)
 		{
 			board.AddBingoNumber(num);
@@ -217,11 +220,21 @@ int main()
 			std::vector<int> WinningNumbers;
 			if (board.HasWon(WinningNumbers))
 			{
-				wining_number = num;
-				winning_board = board;
-				break;
+				if (bingo_boards.size() == 1)
+				{
+					wining_number = num;
+					winning_board = *bingo_boards.begin();
+					break;
+				}
+				continue;
+			}
+			else
+			{
+				non_winning_boards.push_back(board);
 			}
 		}
+		bingo_boards = non_winning_boards;
+
 		if (wining_number!= -1)
 			break;
 	}
