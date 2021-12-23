@@ -13,7 +13,6 @@
 
 struct LineSegment
 {
-
 	bool SegmentComplete()
 	{
 		return  x1 != -1 && y1 != -1 && x2 != -1 && y2 != -1;
@@ -21,10 +20,10 @@ struct LineSegment
 
 	void Print()
 	{
-		std::cout << "x1 " << x1 << ", ";
-		std::cout << "y1 " << y1 << ", ";
-		std::cout << "x2 " << x2 << ", ";
-		std::cout << "y2 " << y2 << "\n";
+		std::cout << "x1: " << x1 << ", ";
+		std::cout << "y1: " << y1 << ", ";
+		std::cout << "x2: " << x2 << ", ";
+		std::cout << "y2: " << y2 << "\n";
 	}
 	void AddNumber(int InNumber)
 	{
@@ -71,6 +70,8 @@ struct GridPoint
 	}
 	void Print()
 	{
+		//std::cout << "X " << X << ", " << "Y " << Y << "\t";
+		//return;
 		std::cout << LinesCoveringPoint << " ";
 	}
 
@@ -97,15 +98,17 @@ struct Grid
 			count += itr->second.LinesCoveringPoint >= 2 ? 1 : 0;
 		}
 
+		/*
 		for (int y = 0; y <= HighestY; y++)
 		{
 			for (int x = 0; x <= HighestX; x++)
 			{
 				auto grid_point = CreateOrFindPoint(x, y);
-			//	grid_point->second.Print();
+				grid_point->second.Print();
 			}
-			//std::cout << "\n";
+			std::cout << "\n";
 		}
+		*/
 
 		std::cout << "Mapped Grid Points " << MappedGridPoints.size() << " Lines Covering " << count << "\n";
 	}
@@ -134,25 +137,153 @@ struct Grid
 
 	void AddLineSegment(LineSegment InSegment)
 	{
-		// for now ensure it is a line 
-		bool is_line = false;
-		if (InSegment.x1 == InSegment.x2 || InSegment.y1 == InSegment.y2)
-			is_line = true;
-
-		if (!is_line)	
-			return;
-
-		int x_start = std::min(InSegment.x1, InSegment.x2);
-		int x_end = std::max(InSegment.x1, InSegment.x2);
-
-		int y_start = std::min(InSegment.y1, InSegment.y2);
-		int y_end = std::max(InSegment.y1, InSegment.y2);
-		for (int y = y_start; y <= y_end; y++)
+		if (InSegment.x1 == InSegment.x2)
 		{
-			for (int x = x_start; x <= x_end; x++)
+			int x = InSegment.x1;
+			// if we are going down it would be x2, y2, x2, y3
+			if (InSegment.y1 < InSegment.y2)
 			{
-				auto grid_point = CreateOrFindPoint(x, y);
-				grid_point->second.LinesCoveringPoint++;
+				int y = InSegment.y1;
+				while (y != InSegment.y2)
+				{
+					auto point = CreateOrFindPoint(x, y);
+					std::cout << "Down" << " x " << x << ", y" << y << std::endl;
+					point->second.LinesCoveringPoint++;
+					y++;
+				}
+				auto point = CreateOrFindPoint(x, y);
+				std::cout << "Down" << " x " << x << ", y" << y << std::endl;
+				point->second.LinesCoveringPoint++;;
+			}
+			// we are going up so it would be x2, y2, x2, y1
+			else
+			{
+				int y = InSegment.y1;
+				while (y != InSegment.y2)
+				{
+					auto point = CreateOrFindPoint(x, y);
+					point->second.LinesCoveringPoint++;
+					std::cout << "Up" << " x " << x << ", y " << y << std::endl;
+					y--;
+				}
+				auto point = CreateOrFindPoint(x, y);
+				point->second.LinesCoveringPoint++;
+				std::cout << "Up" << " x " << x << ", y " << y << std::endl;
+			}
+			return;
+		}
+
+		if (InSegment.y1 == InSegment.y2)
+		{
+			int y = InSegment.y1;
+			// if we are going right it would be x2, y2, x3, y2
+			if (InSegment.x1 < InSegment.x2)
+			{
+				int x = InSegment.x1;
+				while (x != InSegment.x2)
+				{
+					auto point = CreateOrFindPoint(x, y);
+					std::cout << "Right" << " x " << x << ", y " << y << std::endl;
+					point->second.LinesCoveringPoint++;
+					x++;
+				}
+				auto point = CreateOrFindPoint(x, y);
+				std::cout << "Right" << " x " << x << ", y " << y << std::endl;
+				point->second.LinesCoveringPoint++;
+			}
+			// we are going left so it would be x2, y2, x1, y2
+			else
+			{
+				int x = InSegment.x1;
+				while (x != InSegment.x2)
+				{
+					auto point = CreateOrFindPoint(x, y);
+					std::cout << "Left" << " x " << x << ", y " << y << std::endl;
+					point->second.LinesCoveringPoint++;
+					x--;
+				}
+				auto point = CreateOrFindPoint(x, y);
+				std::cout << "Left" << " x " << x << ", y " << y << std::endl;
+				point->second.LinesCoveringPoint++;
+			}
+			return;
+		}
+
+		// Going Right?
+		if (InSegment.x1 < InSegment.x2)
+		{
+			int x = InSegment.x1;
+			// if we are going down it would be x2, y2, x3, y3
+			if (InSegment.y1 < InSegment.y2)
+			{
+				int y = InSegment.y1;
+				while (x != InSegment.x2 && y != InSegment.y2)
+				{
+					auto point = CreateOrFindPoint(x, y);
+					std::cout << "Right Down" << " x " << x << ", y " << y << std::endl;
+					point->second.LinesCoveringPoint++;
+					x++;
+					y++;
+				}
+				auto point = CreateOrFindPoint(x, y);
+				std::cout << "Right Down" << " x " << x << ", y " << y << std::endl;
+				point->second.LinesCoveringPoint++;
+			}
+			// we are going up so it would be x2, y2, x3, y1
+			else
+			{
+				int y = InSegment.y1;
+				while (x != InSegment.x2 && y != InSegment.y2)
+				{
+					auto point = CreateOrFindPoint(x, y);
+					point->second.LinesCoveringPoint++;
+					std::cout << "Right Up" << " x " << x << ", y " << y << std::endl;
+					x++;
+					y--;
+				}
+				
+				auto point = CreateOrFindPoint(x, y);
+				point->second.LinesCoveringPoint++;
+				std::cout << "Right Up" << " x " << x << ", y " << y << std::endl;
+			}
+			return;
+		}
+	// at this point we have to be going left
+		else
+		{
+			int x = InSegment.x1;
+			// if we are going down it would be x2, y2, x1, y3
+			if (InSegment.y1 < InSegment.y2)
+			{
+				int y = InSegment.y1;
+				while (x != InSegment.x2 && y != InSegment.y2)
+				{
+					auto point = CreateOrFindPoint(x, y);
+					std::cout << "Left Down" << " x " << x << ", y " << y << std::endl;
+					point->second.LinesCoveringPoint++;
+					x--;
+					y++;
+				}
+				auto point = CreateOrFindPoint(x, y);
+				std::cout << "Left Down" << " x " << x << ", y " << y << std::endl;
+				point->second.LinesCoveringPoint++;
+			}
+			// we are going up so it would be x2, y2, x1, y1
+			else
+			{
+				int y = InSegment.y1;
+				while (x != InSegment.x2 && y != InSegment.y2)
+				{
+					auto point = CreateOrFindPoint(x, y);
+					std::cout << "Left Up" << " x " << x << ", y " << y << std::endl;
+					point->second.LinesCoveringPoint++;
+					x--;
+					y--;
+				}
+				auto point = CreateOrFindPoint(x, y);
+				std::cout << "Left Up" << " x " << x << ", y " << y << std::endl;
+				point->second.LinesCoveringPoint++;
+				return;
 			}
 		}
 	}
@@ -219,7 +350,7 @@ int main()
 			}
 
 			if (line_segment.SegmentComplete())
-			{	
+			{
 				LineSegments.push_back(line_segment);
 				line_segment = LineSegment();
 			}
@@ -241,4 +372,5 @@ int main()
 		grid.AddLineSegment(segment);
 	}
 	grid.Print();
+	std::cin.ignore();
 }
