@@ -11,234 +11,234 @@
 #include <string>
 #include <vector>
 
-struct BingoBoard
+struct LineSegment
 {
-public:
-	BingoBoard()
-	{
-		Board.clear();
-	}
 
-	void AddNumber(int InNumber)
+	bool SegmentComplete()
 	{
-		for (int i = 0; i < 5; i++)
-		{
-			auto size = Board[i].size();
-			if(size == 5)
-				continue;
-			Board[i].push_back(InNumber);
-			return;
-		}
-	}
-	
-	void AddBingoNumber(int InNumber)
-	{
-		Numbers.push_back(InNumber);
-	}
-
-	bool NumbersContains(int InNumber)
-	{
-		for (auto itr : Numbers)
-		{
-			if (itr == InNumber)
-			{
-				return true;
-			}
-		}
-		return false;
-	}
-
-	bool HasWon(std::vector<int>& WinningNumbers)
-	{
-		// Row check 
-		std::map<int, std::vector<int>> column;
-		for (auto itr = Board.begin(); itr != Board.end(); ++itr)
-		{
-			auto row_numbers = itr->second;
-			int count =0;
-			int row = 0;
-			for (auto num : row_numbers)
-			{
-				if (NumbersContains(num))
-				{
-					column[row].push_back(num);
-					count++;
-				}
-				row++;
-			}
-			if (count == 5)
-			{
-				WinningNumbers = row_numbers;
-				return true;
-			}
-			
-		}
-		for (auto itr = column.begin(); itr != column.end(); ++itr)
-		{
-			auto column_numbers = itr->second;
-			if (column_numbers.size() == 5)
-			{
-				WinningNumbers = column_numbers;
-				return true;
-			}
-		}
-		return false;
+		return  x1 != -1 && y1 != -1 && x2 != -1 && y2 != -1;
 	}
 
 	void Print()
 	{
-		std::cout << "board " << Index << "\n";
-		for (auto itr = Board.begin(); itr != Board.end(); ++itr)
+		std::cout << "x1 " << x1 << ", ";
+		std::cout << "y1 " << y1 << ", ";
+		std::cout << "x2 " << x2 << ", ";
+		std::cout << "y2 " << y2 << "\n";
+	}
+	void AddNumber(int InNumber)
+	{
+		if (x1 == -1)
 		{
-			auto row_numbers = itr->second;
-			size_t size = row_numbers.size();
-			for (int i =0; i <= size; i++)
+			x1 = InNumber;
+			//	std::cout << "x1 " << x1 << "\n";
+			return;
+		}
+
+		if (y1 == -1)
+		{
+			y1 = InNumber;
+			//	std::cout << "y1 " << y1 << "\n";
+			return;
+		}
+
+		if (x2 == -1)
+		{
+			x2 = InNumber;
+			//	std::cout << "x2 " << x2 << "\n";
+			return;
+		}
+
+		if (y2 == -1)
+		{
+			y2 = InNumber;
+			//	std::cout << "y2 " << y2 << "\n";
+			return;
+		}
+	}
+	int x1 = -1;
+	int y1 = -1;
+	int x2 = -1;
+	int y2 = -1;
+};
+
+struct GridPoint
+{
+	GridPoint(int InX, int InY)
+	{
+		X = InX;
+		Y = InY;
+	}
+	void Print()
+	{
+		std::cout << LinesCoveringPoint << " ";
+	}
+
+	int X = -1;
+	int Y = -1;
+	int LinesCoveringPoint = 0;
+};
+
+
+struct Grid
+{
+	/*
+	My basic thought on this is that we we have a grid point x0 y0
+	we form the grid dynamically, when a point intersects/matches with x0 y0 we increase the number
+	so then x0 y0 becomes 1
+	*/
+
+	void Print()
+	{
+		int count = 0;
+
+		for (auto itr = MappedGridPoints.begin(); itr != MappedGridPoints.end(); itr++)
+		{
+			count += itr->second.LinesCoveringPoint >= 2 ? 1 : 0;
+		}
+
+		for (int y = 0; y <= HighestY; y++)
+		{
+			for (int x = 0; x <= HighestX; x++)
 			{
-				if (i == size)
-				{
-					std::cout << "\n";
-					continue;
-				}
+				auto grid_point = CreateOrFindPoint(x, y);
+			//	grid_point->second.Print();
+			}
+			//std::cout << "\n";
+		}
 
-				auto num = row_numbers[i];
-				if (NumbersContains(num))
-				{
-					std::cout << "pass " << num << "\t";
-	
-				}
-				else
-				{
-					std::cout << "fail " << num << "\t";
-				}
+		std::cout << "Mapped Grid Points " << MappedGridPoints.size() << " Lines Covering " << count << "\n";
+	}
+
+	std::map<std::string, GridPoint>::iterator CreateOrFindPoint(int InX, int InY)
+	{
+		std::string point = "x" + std::to_string(InX) + ", y" + std::to_string(InY);
+		auto grid_point = MappedGridPoints.find(point);
+		if (grid_point != MappedGridPoints.end())
+			return grid_point;
+		MappedGridPoints.insert(std::pair<std::string, GridPoint>(point, GridPoint(InX, InY)));
+		return MappedGridPoints.find(point);
+	}
+
+	void CreateGrids()
+	{
+		// Add any grids to the map 
+		for (int y = LowestY; y <= HighestY; y++)
+		{
+			for (int x = LowestX; x <= HighestX; x++)
+			{
+				CreateOrFindPoint(x, y);
 			}
 		}
 	}
 
-
-	int Sum()
+	void AddLineSegment(LineSegment InSegment)
 	{
-		int sum = 0;
-		for (auto itr = Board.begin(); itr != Board.end(); ++itr)
+		// for now ensure it is a line 
+		bool is_line = false;
+		if (InSegment.x1 == InSegment.x2 || InSegment.y1 == InSegment.y2)
+			is_line = true;
+
+		if (!is_line)	
+			return;
+
+		int x_start = std::min(InSegment.x1, InSegment.x2);
+		int x_end = std::max(InSegment.x1, InSegment.x2);
+
+		int y_start = std::min(InSegment.y1, InSegment.y2);
+		int y_end = std::max(InSegment.y1, InSegment.y2);
+		for (int y = y_start; y <= y_end; y++)
 		{
-			for (auto num : itr->second)
-			{		
-				if (!NumbersContains(num))
-				{
-					std::cout << sum <<" + " << num << " = " << sum + num << "\n";;
-					sum += num;
-				}
+			for (int x = x_start; x <= x_end; x++)
+			{
+				auto grid_point = CreateOrFindPoint(x, y);
+				grid_point->second.LinesCoveringPoint++;
 			}
 		}
-		return sum;
 	}
 
-	int NumbersCount()
+	void HandleHighestAndLowest(LineSegment InSegment)
 	{
-		int size = 0;
-		for (int i = 0; i < 5; i++)
-		{
-			int row_size = Board[i].size();
-		//	std::cout << "row_size " << row_size << "\n";
-			size += row_size;
-		}
-		//std::cout << "number count " << size << "\n";
-		return size;
+		HighestX = std::max(HighestX, InSegment.x1);
+		HighestX = std::max(HighestX, InSegment.x2);
+		LowestX = std::min(LowestX, InSegment.x1);
+		LowestX = std::min(LowestX, InSegment.x2);
+
+		HighestY = std::max(HighestY, InSegment.y1);
+		HighestY = std::max(HighestY, InSegment.y2);
+		LowestY = std::min(LowestY, InSegment.y1);
+		LowestY = std::min(LowestY, InSegment.y2);
 	}
 
-	int Index = 0;
+	int HighestX = -1;
+	int LowestX = 1000000;
 
+	int HighestY = -1;
+	int LowestY = 1000000;
 private:
-	std::map<int, std::vector<int>> Board;
-	
-	std::vector<int> Numbers;
-
+	std::map<std::string, GridPoint> MappedGridPoints;
 };
 
 int main()
 {
 	std::ifstream myfile;
-	std::string bingo_string;
+	std::string string;
 	myfile.open("list.txt");
-	std::vector<int> bingo_numbers;
-	std::vector<BingoBoard> bingo_boards;
-	int Index = 0;
+	std::vector<LineSegment> LineSegments;
+	char comma = ',';
+
 	if (myfile.is_open())
 	{
-		BingoBoard current_board;
+		LineSegment line_segment;
 		while (myfile.good())
 		{
-			myfile >> bingo_string;
-			//std::cout << "bingo_string " << bingo_string << "\n";
+			myfile >> string;
+			//std::cout << string << "\n";
 
-			if (bingo_numbers.size() == 0)
+			std::string coordinate_string;
+			while (string.size() > 0 && string != "->")
 			{
-				std::string bingo_number_string;
-				while (bingo_string.size() > 0)
+				auto itr = string.begin();
+				char number = *itr;
+				coordinate_string.push_back(number);
+				if (*itr == comma)
 				{
-					auto itr = bingo_string.begin();
-					char number = *itr;
-					bingo_number_string.push_back(number);
-					char comma = ',';
-					if (*itr == comma)
-					{
-						int num = std::stoi(bingo_number_string);
-						//std::cout << "bingo number " << num << "\n";
-						bingo_numbers.push_back(num);
-						bingo_number_string.clear();
-					}
-					bingo_string.erase(itr);
+					int num = std::stoi(coordinate_string);
+					//std::cout << "coordinate_string " << num << "\n";
+					line_segment.AddNumber(num);
+					coordinate_string.clear();
+				}
+				string.erase(itr);
+				if (string.size() == 0)
+				{
+					int num = std::stoi(coordinate_string);
+					//std::cout << "coordinate_string " << num << "\n";
+					line_segment.AddNumber(num);
+					coordinate_string.clear();
 				}
 			}
-			else
-			{
-				current_board.AddNumber(std::stoi(bingo_string));
-				if (current_board.NumbersCount() == 25)
-				{
-					bingo_boards.push_back(current_board);
-					current_board = BingoBoard();
-					current_board.Index = Index;
-					Index++;
-				}
+
+			if (line_segment.SegmentComplete())
+			{	
+				LineSegments.push_back(line_segment);
+				line_segment = LineSegment();
 			}
 		}
 	}
 
-	
-	BingoBoard winning_board;
+	Grid grid;
 
-	int wining_number = -1;
-	for (auto num : bingo_numbers)
+	for (auto segment : LineSegments)
 	{
-		std::cout << "number " << num << "\n";
-
-		std::vector<BingoBoard> non_winning_boards;
-		for (BingoBoard& board : bingo_boards)
-		{
-			board.AddBingoNumber(num);
-			board.Print();
-			std::cout << "\n";
-			std::vector<int> WinningNumbers;
-			if (board.HasWon(WinningNumbers))
-			{
-				if (bingo_boards.size() == 1)
-				{
-					wining_number = num;
-					winning_board = *bingo_boards.begin();
-					break;
-				}
-				continue;
-			}
-			else
-			{
-				non_winning_boards.push_back(board);
-			}
-		}
-		bingo_boards = non_winning_boards;
-
-		if (wining_number!= -1)
-			break;
+		grid.HandleHighestAndLowest(segment);
 	}
-	std::cout << "Wining Number " << wining_number <<"\n"  ;
-	int score = winning_board.Sum() * wining_number;
-	std::cout << "score " << score << "\n";;
+
+	grid.CreateGrids();
+
+	for (auto segment : LineSegments)
+	{
+		segment.Print();
+		grid.AddLineSegment(segment);
+	}
+	grid.Print();
 }
