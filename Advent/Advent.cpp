@@ -11,23 +11,110 @@
 #include <string>
 #include <vector>
 
-struct Fish
+struct Fishes
 {
-	Fish(int InStarTime = 9)
+	Fishes()
 	{
-		InternalTimer = InStarTime;
+
 	}
 
-	int InternalTimer = -1;
+	Fishes(const Fishes& fish)
+	{
+		Zero = fish.Zero;
+		One = fish.One;
+		Two = fish.Two;
+		Three = fish.Three;
+		Four = fish.Four;
+		Five = fish.Five;
+		Six = fish.Six;
+		Seven = fish.Seven;
+		Eight = fish.Eight;
+	}
 
+	int64_t Count()
+	{
+		return Zero + One + Two + Three + Four + Five + Six + Seven + Eight;
+	}
+
+	void Print()
+	{
+		std::cout << Zero << " " << One << " " << Two << " " << Three << " " << Four << " " << Five << " " << Six << " " << Seven << " " << Eight << "\n";
+	}
+
+	void AddFish(int InNum)
+	{
+		switch (InNum)
+		{
+		case 0:
+			Zero++;
+			break;
+		case 1:
+			One++;
+			break;
+		case 2:
+			Two++;
+			break;
+		case 3:
+			Three++;
+			break;
+		case 4:
+			Four++;
+			break;
+		case 5:
+			Five++;
+			break;
+		case 6:
+			Six++;
+		case 7:
+			Seven++;
+			break;;
+		case 8:
+			Eight++;
+			break;
+		}
+	}
+
+	void PassDay()
+	{
+		Fishes fish(*this);
+		Zero = fish.One;
+		One = fish.Two;
+		Two = fish.Three;
+		Three = fish.Four;
+		Four = fish.Five;
+		Five = fish.Six;
+		Six = fish.Seven + fish.Zero;
+		Seven = fish.Eight;
+		Eight = 0 + fish.Zero;
+	}
+
+	int64_t Zero = 0;
+	int64_t One = 0;
+	int64_t Two = 0;
+	int64_t Three = 0;
+	int64_t Four = 0;
+	int64_t Five = 0;
+	int64_t Six = 0;
+	int64_t Seven = 0;
+	int64_t Eight = 0;
 };
 
+int64_t FishCount(std::vector<int> FishTracker)
+{
+	int count = 0;
+	for (auto fish : FishTracker)
+	{
+		count += fish;
+	}
+	return count;
+}
 int main()
 {
 	std::ifstream myfile;
 	std::string string;
 	myfile.open("list.txt");
-	std::vector<Fish> Fishies;
+
+	Fishes fishes;
 	char comma = ',';
 
 	if (myfile.is_open())
@@ -37,7 +124,7 @@ int main()
 			myfile >> string;
 			std::cout << string << "\n";
 			std::string fish_string;
-		
+
 			while (string.size() > 0 && string != "->")
 			{
 				auto itr = string.begin();
@@ -47,7 +134,8 @@ int main()
 				{
 					int num = std::stoi(fish_string);
 					//std::cout << "coordinate_string " << num << "\n";
-					Fishies.push_back(Fish(num));
+					fishes.AddFish(num);
+
 					fish_string.clear();
 				}
 				string.erase(itr);
@@ -55,57 +143,27 @@ int main()
 				{
 					int num = std::stoi(fish_string);
 					//std::cout << "coordinate_string " << num << "\n";
-					Fishies.push_back(Fish(num));
+					fishes.AddFish(num);
 					fish_string.clear();
 				}
 			}
 
 		}
 	}
-	int fishes_to_create = 0;
 
-	for (int day = 0; day <= 80; day++)
+	for (int64_t day = 0; day <= 256; day++)
 	{
+		std::cout << "Day " << day << ":";
 		if (day == 0)
 		{
-			std::cout << "Initial state: ";
-		}
-		else
-		{
-			std::cout << "After: " << day <<" " << std::string(day > 1 ? "days" : " day") << ": ";
-		}
-
-		for (int i = 0; i < fishes_to_create; i++)
-		{
-			Fishies.push_back(Fish());
-		}
-
-		fishes_to_create = 0;
-
-		for (auto fish = Fishies.begin(); fish != Fishies.end(); ++fish)
-		{
-			if (day == 0)
-			{
-				//std::cout << fish->InternalTimer << ",";
-				continue;
-			}
-
-			fish->InternalTimer--;
-			//std::cout << fish->InternalTimer << ",";
-			
-			if (fish->InternalTimer == 0)
-			{
-				fishes_to_create++;
-				fish->InternalTimer = 7;
-			}		
-		}
-		
-		//std::cout << "\n";
-
-		std::cout << "Fishes " << Fishies.size();
-		
-		std::cout << "\n";
+			std::cout << "Fishes " << fishes.Count() << "\n";
+			fishes.Print();
+			continue;
+		}	
+		fishes.PassDay();
+		std::cout << "Fishes " << fishes.Count() << "\n";
+		fishes.Print();		
 	}
-	std::cout << "Fishes " << Fishies.size();
+	std::cout << "Fishes " << fishes.Count() << "\n";
 	std::cin.ignore();
 }
