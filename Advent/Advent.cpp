@@ -67,8 +67,25 @@ int main()
 		int fuel_cost = 0;
 		for (auto crab : Crabs)
 		{
-			fuel_cost += std::abs(crab - horizontal_position);
-			//std::cout << "Move from " << crab << " to " << horizontal_position << ": " << fuel_cost << " fuel" << "\n";
+			int crab_cost = 0;
+			int crab_fuel_cost = -1;
+	
+			for (int i = crab; i <= horizontal_position; i++)
+			{
+				crab_fuel_cost++;
+				crab_cost += crab_fuel_cost;
+				//std::cout << "crab_fuel_cost " << crab_fuel_cost << " crab_cost " << crab_cost << "\n";
+			}
+			
+			for (int i = crab; i >= horizontal_position; i--)
+			{
+				crab_fuel_cost++;
+				crab_cost += crab_fuel_cost;
+			//	std::cout << "crab_fuel_cost " << crab_fuel_cost << " crab_cost " << crab_cost << "\n";
+			}
+			fuel_cost += crab_cost;
+					
+//			std::cout << "Move from " << crab << " to " << horizontal_position << ": " << crab_fuel_cost << " fuel" << "\n";
 		}
 
 		if (fuel_cost < paired_fuel_cost.second)
