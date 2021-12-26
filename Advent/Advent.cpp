@@ -10,92 +10,144 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <windows.h>   // WinApi header
+
+using namespace std;
+
+
+struct Digit
+{
+	void PassChar(char InChar)
+	{
+		Characters++;
+	}
+
+	bool IsDigit()
+	{
+		//	//cout << DigitName << " IsDigit: Invalid " << Invalid << " Characters " << Characters << " RequiredCharacters Size " << RequiredCharacters.size() << "\n";
+		return Characters == RequiredCharacters;
+	}
+	string DigitName;
+	int RequiredCharacters = 0;
+
+	int Characters = 0;
+};
+
+struct DigitOne : public Digit
+{
+	DigitOne()
+	{
+		RequiredCharacters = 2;
+		DigitName = "Digit One";
+	}
+};
+
+struct DigitFour : public Digit
+{
+	DigitFour()
+	{
+		RequiredCharacters = 4;
+		DigitName = "Digit Four";
+	}
+};
+
+struct DigitSeven : public Digit
+{
+	DigitSeven()
+	{
+		RequiredCharacters = 3;
+		DigitName = "Digit Seven";
+	}
+};
+
+struct DigitEight : public Digit
+{
+	DigitEight()
+	{
+		RequiredCharacters = 7;
+		DigitName = "Digit Eight";
+	}
+};
+
+bool IsDigit(string InSegment)
+{
+	vector<Digit> digits = { DigitOne(), DigitFour(),DigitSeven(), DigitEight() };
+	for (auto digit = digits.begin(); digit != digits.end(); digit++)
+	{
+		for (char current_char : InSegment)
+		{
+			digit->PassChar(current_char);
+		}
+	}
+
+	////cout << "\n";
+	for (auto digit = digits.begin(); digit != digits.end(); digit++)
+	{
+		if (digit->IsDigit())
+			return true;
+	}
+
+	return false;
+}
 
 int main()
 {
-	std::ifstream myfile;
-	std::string string;
+	ifstream myfile;
+	string string;
 	myfile.open("list.txt");
-	
-	int horizontal_start = INT_MAX;
-	int horizontal_end = INT_MIN;
-	std::vector<int> Crabs;
-	char comma = ',';
 
+	char comma = ',';
+	int digits_appear = 0;
+	int four_strings = 0;
+	bool metLine = false;
 	if (myfile.is_open())
 	{
 		while (myfile.good())
 		{
 			myfile >> string;
-			std::cout << string << "\n";
-			std::string horizontal_position;
-			while (string.size() > 0 && string != "->")
+
+			if (string == "|")
 			{
-				auto itr = string.begin();
-				char number = *itr;
-				horizontal_position.push_back(number);
-				if (*itr == comma)
-				{
-					int num = std::stoi(horizontal_position);
-					//std::cout << "coordinate_string " << num << "\n";
-					horizontal_start = std::min(num, horizontal_start);
-					horizontal_end = std::max(num, horizontal_end);
-					Crabs.push_back(num);
+				cout << string << " ";
+				cout << "\n";
+				four_strings = 0;
+				metLine = true;
 
-					horizontal_position.clear();
-				}
-				string.erase(itr);
-				if (string.size() == 0)
-				{
-					int num = std::stoi(horizontal_position);
-					//std::cout << "coordinate_string " << num << "\n";
-					horizontal_start = std::min(num, horizontal_start);
-					horizontal_end = std::max(num, horizontal_end);
-					Crabs.push_back(num);
+				continue;
+			}
 
-					horizontal_position.clear();
+			if (metLine)
+			{
+				HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+
+				if (IsDigit(string))
+				{
+					SetConsoleTextAttribute(hConsole, 2);
+					cout << string << " ";
+					digits_appear++;
 				}
+				else
+				{
+					SetConsoleTextAttribute(hConsole, 4);
+					cout << string << " ";
+				}
+				SetConsoleTextAttribute(hConsole, 15);
+				//return 0;
+				four_strings++;
+				if (four_strings == 4)
+				{
+					cout << "\n";
+					four_strings = 0;
+					metLine = false;
+				}
+			}
+			else
+			{
+				cout << string << " ";
 			}
 		}
 	}
-
-
-	std::pair<int, int> paired_fuel_cost;
-	paired_fuel_cost = std::pair<int, int>(0, INT_MAX);
-	for (int horizontal_position = horizontal_start; horizontal_position <= horizontal_end; horizontal_position++)
-	{
-		int fuel_cost = 0;
-		for (auto crab : Crabs)
-		{
-			int crab_cost = 0;
-			int crab_fuel_cost = -1;
-	
-			for (int i = crab; i <= horizontal_position; i++)
-			{
-				crab_fuel_cost++;
-				crab_cost += crab_fuel_cost;
-				//std::cout << "crab_fuel_cost " << crab_fuel_cost << " crab_cost " << crab_cost << "\n";
-			}
-			
-			for (int i = crab; i >= horizontal_position; i--)
-			{
-				crab_fuel_cost++;
-				crab_cost += crab_fuel_cost;
-			//	std::cout << "crab_fuel_cost " << crab_fuel_cost << " crab_cost " << crab_cost << "\n";
-			}
-			fuel_cost += crab_cost;
-					
-//			std::cout << "Move from " << crab << " to " << horizontal_position << ": " << crab_fuel_cost << " fuel" << "\n";
-		}
-
-		if (fuel_cost < paired_fuel_cost.second)
-		{
-			paired_fuel_cost.first = horizontal_position;
-			paired_fuel_cost.second = fuel_cost;
-		}
-
-		std::cout << "horizontal_position " << horizontal_position << " fuel_cost " << fuel_cost << "\n";
-	}
-	std::cout << "lowest position " << paired_fuel_cost.first << " cost " << paired_fuel_cost.second;
-
+	cout << "\n";
+	cout << "digits appear " << digits_appear;
+	cin.ignore();
 }
